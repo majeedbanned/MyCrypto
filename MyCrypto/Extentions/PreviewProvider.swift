@@ -20,6 +20,10 @@ class DeveloperPreview{
     }
     
     let HomeVm=HomeViewModel()
+    
+    let state1=StatesticModel(title: "Market Cap", value: "$12.00",perentage: 25.34)
+    let state2=StatesticModel(title: "Total Volume ", value: "$1.42Tr")
+    let state3=StatesticModel(title: "Portfolio Values ", value: "$50.4K",perentage: -5.34)
     let coin = CoinModel(
           id: "bitcoin",
           symbol: "btc",
