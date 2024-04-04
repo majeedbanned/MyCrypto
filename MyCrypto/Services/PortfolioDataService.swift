@@ -23,7 +23,26 @@ class PortfolioDataService {
             }
             
             
+            self.getPortfolio()
+        }
+        
+    }
+    
+    // MARK :Public
+    func updatePortfolio(coin:CoinModel,amount:Double)
+    {
+        if let entity=savedEntites.first(where:{$0.coinId == coin.id}){
             
+            if amount > 0 {
+                 update(entity: entity, amount: amount)
+            }else
+            {
+                delete(entity: entity)
+            }
+            
+        }else{
+            add(coin: coin, amoint: amount)
+        
         }
         
     }
@@ -42,6 +61,17 @@ class PortfolioDataService {
         let entity = PortfolioEntity(context: container.viewContext)
         entity.coinId = coin.id
         entity.amount = amoint
+        applyChanges()
+    }
+    
+    private func update(entity:PortfolioEntity , amount :Double)
+    {
+        entity.amount = amount
+        applyChanges()
+    }
+    
+    private func delete(entity: PortfolioEntity){
+        container.viewContext.delete(entity)
         applyChanges()
     }
     private func save(){
