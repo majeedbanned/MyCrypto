@@ -49,12 +49,6 @@ class HomeViewModel :ObservableObject{
             }
             .store(in: &cancellables)
         
-        marketDataService.$MarketData
-            .map(mapGlobalMarketData)
-            .sink {[weak self] (returnedValue) in
-                self?.statestic=returnedValue
-            }
-            .store(in: &cancellables)
         
         //update portfolio Coins
        $allCoins
@@ -77,6 +71,17 @@ class HomeViewModel :ObservableObject{
             .store(in: &cancellables)
         
         
+        marketDataService.$MarketData
+            .combineLatest($portfolioCoin)
+            .map(mapGlobalMarketData)
+            .sink {[weak self] (returnedValue) in
+                self?.statestic=returnedValue
+            }
+            .store(in: &cancellables)
+        
+     
+        
+        
     }
     
     
@@ -96,14 +101,31 @@ class HomeViewModel :ObservableObject{
         }
     }
     
-    private func mapGlobalMarketData(marketDataModel: MarketDataModel?)->[StatesticModel]{
+    private func mapGlobalMarketData(marketDataModel: MarketDataModel? , portfolioCoin : [CoinModel] )->[StatesticModel]{
         var stats: [StatesticModel] = []
         guard let data = marketDataModel else {return stats}
         
         let marketCap = StatesticModel(title: "Market Cap", value: data.marketCap,perentage: data.marketCapChangePercentage24HUsd)
         let volume = StatesticModel(title: "24h Volume", value: data.volume)
         let btcDominance = StatesticModel(title: "BTC Dominance", value: data.btcDominance)
-        let portfolio = StatesticModel(title: "Portfolio Value", value: "$0.00",perentage: 0)
+        
+        let portfolioValue = portfolioCoin
+            .map({$0.currentHoldingsValue})
+            .reduce(0,+)
+        
+        let perivioasValue =
+            portfolioCoin
+            .map{ (coin) -> Double in
+                let currentValue=coin.currentHoldingsValue
+                let persentChange = (coin.priceChangePercentage24H ?? 0) / 100
+                let previousValue = currentValue / (1 + persentChange)
+                return previousValue
+            }
+            .reduce(0, +)
+        
+        let persentageChange = ((portfolioValue - perivioasValue)/perivioasValue) * 1000
+        
+        let portfolio = StatesticModel(title: "Portfolio Value", value: portfolioValue.asCurrencyWith2Decimals(),perentage: persentageChange)
         
         stats.append(contentsOf: [
         marketCap,
